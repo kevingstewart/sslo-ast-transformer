@@ -1,0 +1,48 @@
+when CLIENT_DATA {
+    catch {
+        if { [UDP::payload] contains "Traffic summary" } {
+            ## Parse SSLO summary log if present
+            set json_ssl "\{"
+            append json_ssl "\"flow_id\":\"[findstr [UDP::payload] ":Common:" 8 ":"]\","
+            append json_ssl "\"vip\":\"[findstr [UDP::payload] " " 1 " Traffic summary"]\","
+            append json_ssl "\"l4_protocol\":\"[findstr [UDP::payload] "Traffic summary - " 18 " "]\","
+            set src [findstr [UDP::payload] "Traffic summary - " 22 " -> "]
+            append json_ssl "\"src_ip\":\"[lindex [split $src ":"] 0]\","
+            append json_ssl "\"src_port\":\"[lindex [split $src ":"] 1]\","
+            set dst [findstr [UDP::payload] " -> " 4 " "]
+            append json_ssl "\"dst_ip\":\"[lindex [split $dst ":"] 0]\","
+            append json_ssl "\"dst_port\":\"[lindex [split $dst ":"] 1]\","
+            set clientssl [findstr [UDP::payload] " clientSSL: " 12]
+            append json_ssl "\"client_ssl_protocol\":\"[lindex [split $clientssl " "] 0]\","
+            append json_ssl "\"client_ssl_cipher\":\"[lindex [split $clientssl " "] 1]\","
+            set serverssl [findstr [UDP::payload] " serverSSL: " 12]
+            append json_ssl "\"server_ssl_protocol\":\"[lindex [split $serverssl " "] 0]\","
+            append json_ssl "\"server_ssl_cipher\":\"[lindex [split $serverssl " "] 1]\","
+            set l7 [findstr [UDP::payload] " L7 " 4 ")"]
+            append json_ssl "\"l7_protocol\":\"[lindex [split $l7 " "] 0]\","
+            append json_ssl "\"sslo_host\":\"[findstr [lindex [split $l7 " "] 1] "" 1]\","
+            append json_ssl "\"decryption\":\"[findstr [UDP::payload] "decryption-status: " 19 " "]\","
+            append json_ssl "\"duration\":\"[findstr [UDP::payload] "duration: " 10 " "]\","
+            append json_ssl "\"service_path\":\"[findstr [UDP::payload] "service-path: " 14 " "]\","
+            append json_ssl "\"client_bytes_in\":\"[findstr [UDP::payload] "client-bytes-in: " 17 " "]\","
+            append json_ssl "\"client_bytes_out\":\"[findstr [UDP::payload] "client-bytes-out: " 18 " "]\","
+            append json_ssl "\"server_bytes_in\":\"[findstr [UDP::payload] "server-bytes-in: " 17 " "]\","
+            append json_ssl "\"server_bytes_out\":\"[findstr [UDP::payload] "server-bytes-out: " 18 " "]\","
+            append json_ssl "\"client_tls_handshake\":\"[findstr [UDP::payload] "client-tls-handshake: " 22 " "]\","
+            append json_ssl "\"server_tls_handshake\":\"[findstr [UDP::payload] "server-tls-handshake: " 22 " "]\","
+            append json_ssl "\"reset_cause\":\"[findstr [UDP::payload] "reset-cause: " 13 " "]\","
+            append json_ssl "\"policy_rule\":\"[findstr [UDP::payload] "policy-rule: " 13 " "]\","
+            append json_ssl "\"url_category\":\"[findstr [UDP::payload] "url-category: " 14 " "]\","
+            append json_ssl "\"ingress\":\"[findstr [UDP::payload] "ingress: " 9 " "]\","
+            append json_ssl "\"egress\":\"[findstr [UDP::payload] "egress: " 8 " "]\"\}"
+
+            ## Create syslog formatting
+            set syslogstr "<34>1 [clock format [clock seconds] -gmt 1 -format {%Y-%m-%dT%H:%M:%S.000Z}] $static::tcl_platform(machine) sslo - [TMM::cmp_count] - ${json_ssl}"
+
+            ## Replace UDP payload
+            set oldlength [UDP::payload length]
+            UDP::payload replace 0 0 $syslogstr
+            UDP::payload replace [string length $syslogstr] [expr [UDP::payload length] - [string length $syslogstr]] ""
+        }
+    }
+}

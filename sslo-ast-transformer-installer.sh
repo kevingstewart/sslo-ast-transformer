@@ -12,7 +12,6 @@ then
 fi
 
 ## Create the _sslo_ast_transformer rule
-echo "..Creating the user-coaching-rule iRule"
 rule=$(curl -sk ${IRULEURL})
 data="{\"name\":\"_sslo_ast_transformer_rule\",\"apiAnonymous\":\"${rule}\"}"
 curl -sk \
@@ -44,7 +43,7 @@ destinations replace-all-with { _sslo_ast_transformer_log_dest }
 
 ## Create the _sslo_ast_transformer_logger access log (use this in SSLO log settings)
 ## --> points to log publisher
-create apm log-setting _sslo_ast_transformer_logger \
+tmsh create apm log-setting _sslo_ast_transformer_logger \
 access replace-all-with { \
 general-log { \
 log-level { \

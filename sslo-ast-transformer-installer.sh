@@ -13,7 +13,7 @@ fi
 
 ## Create the _sslo_ast_transformer rule
 echo "..Creating the user-coaching-rule iRule"
-rule=$(curl -sk ${IRULEURL} | awk '{printf "%s\\n", $0}' | sed -e 's/\"/\\"/g;s/\x27/\\'"'"'/g')
+rule=$(curl -sk ${IRULEURL})
 data="{\"name\":\"_sslo_ast_transformer_rule\",\"apiAnonymous\":\"${rule}\"}"
 curl -sk \
 -u ${BIGUSER} \

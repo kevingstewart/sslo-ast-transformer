@@ -19,6 +19,20 @@ To install:
 * In the Log Settings section of the SSL Orchestrator topology configuration, add the **_sslo_ast_transformer_log_pub** log publisher, and ensure that "SSL Orchestrator Generic" (logging) is set to "Information" to generate the SSL Orchestrator traffic summary logs.
 
 ----
+
+For the simple AST installer, without transformation iRule configuration:
+
+* Export the BIG-IP user:pass:
+  ```bash
+  export BIGUSER='admin:password'
+  ```
+
+* Run the installer from the BIG-IP shell:
+  ```bash
+  curl -s https://raw.githubusercontent.com/kevingstewart/sslo-ast-transformer/refs/heads/main/sslo-ast-simple-installer.sh | bash
+  ```
+
+----
 The installer creates the following objects:
 * Log parsing iRule
 * External pool (points to AST otel-collector)
